@@ -2,6 +2,7 @@ package work
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"reflect"
 	"time"
@@ -288,7 +289,11 @@ func terminateAndRetry(w *worker, jt *jobType, job *Job) terminateOp {
 		return terminateOnly
 	}
 	return func(conn redis.Conn) {
-		conn.Send("ZADD", redisKeyRetry(w.namespace), nowEpochSeconds()+jt.calcBackoff(job), rawJSON)
+		log.Warnf("added job to retry pool %s", job.Name)
+		err := conn.Send("ZADD", redisKeyRetry(w.namespace), nowEpochSeconds()+jt.calcBackoff(job), rawJSON)
+		if err != nil {
+			log.Errorf("error adding job to retry pool: %s", err)
+		}
 	}
 }
 func terminateAndDead(w *worker, job *Job) terminateOp {
