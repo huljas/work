@@ -9,12 +9,14 @@ import (
 // returns an error if the job fails, or there's a panic, or we couldn't reflect correctly.
 // if we return an error, it signals we want the job to be retried.
 func runJob(job *Job, ctxType reflect.Type, middleware []*middlewareHandler, jt *jobType) (returnCtx reflect.Value, returnError error) {
+	log.Infof("### running job %s middleware %d", job.Name, len(middleware))
 	returnCtx = reflect.New(ctxType)
 	currentMiddleware := 0
 	maxMiddleware := len(middleware)
 
 	var next NextMiddlewareFunc
 	next = func() error {
+		log.Infof("### next middleware")
 		if currentMiddleware < maxMiddleware {
 			mw := middleware[currentMiddleware]
 			currentMiddleware++
@@ -24,10 +26,12 @@ func runJob(job *Job, ctxType reflect.Type, middleware []*middlewareHandler, jt 
 			res := mw.DynamicMiddleware.Call([]reflect.Value{returnCtx, reflect.ValueOf(job), reflect.ValueOf(next)})
 			x := res[0].Interface()
 			if x == nil {
+				log.Infof("### dynamic mware no err")
 				return nil
 			}
-			log.Errorf("dynamic middleware error: %s", x)
-			return x.(error)
+			err := x.(error)
+			log.Errorf("### dynamic middleware error: %s", err)
+			return err
 		}
 		if jt.IsGeneric {
 			return jt.GenericHandler(job)
@@ -35,10 +39,12 @@ func runJob(job *Job, ctxType reflect.Type, middleware []*middlewareHandler, jt 
 		res := jt.DynamicHandler.Call([]reflect.Value{returnCtx, reflect.ValueOf(job)})
 		x := res[0].Interface()
 		if x == nil {
+			log.Infof("### dynamic handler no err")
 			return nil
 		}
-		log.Errorf("dynamic handler error: %s", x)
-		return x.(error)
+		err := x.(error)
+		log.Errorf("### dynamic handler error: %s", err)
+		return err
 	}
 
 	defer func() {

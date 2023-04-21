@@ -215,11 +215,10 @@ func (w *worker) processJob(job *Job) {
 	fate := terminateOnly
 	if runErr != nil {
 		log.Warnf("### job %s failed on runErr: %s", job.Name, runErr)
-
 		job.failed(runErr)
 		fate = w.jobFate(jt, job)
 	} else {
-		log.Infof("runErr was nil")
+		log.Infof("### runErr is nil")
 	}
 	w.removeJobFromInProgress(job, fate)
 }
@@ -293,7 +292,7 @@ func terminateOnly(_ redis.Conn) {
 	return
 }
 func terminateAndRetry(w *worker, jt *jobType, job *Job) terminateOp {
-	log.Warnf("### terminateAndRetry %s", job.Name)
+	log.Warnf("### terminateAndRetry %s %d", job.Name, job.Fails)
 
 	rawJSON, err := job.serialize()
 	if err != nil {
