@@ -1,7 +1,9 @@
 package work
 
-import "fmt"
+import (
+	log "github.com/sirupsen/logrus"
+)
 
 func logError(key string, err error) {
-	fmt.Printf("ERROR: %s - %s\n", key, err.Error())
+	log.Errorf("ERROR: %s - %s\n", key, err.Error())
 }
