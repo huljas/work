@@ -1,6 +1,6 @@
-module github.com/gocraft/work
+module github.com/huljas/work
 
-go 1.14
+go 1.19
 
 require (
 	github.com/albrow/jobs v0.4.2
