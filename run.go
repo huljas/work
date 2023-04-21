@@ -2,6 +2,7 @@ package work
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"reflect"
 )
 
@@ -25,6 +26,7 @@ func runJob(job *Job, ctxType reflect.Type, middleware []*middlewareHandler, jt 
 			if x == nil {
 				return nil
 			}
+			log.Errorf("dynamic middleware error: %s", x)
 			return x.(error)
 		}
 		if jt.IsGeneric {
@@ -35,6 +37,7 @@ func runJob(job *Job, ctxType reflect.Type, middleware []*middlewareHandler, jt 
 		if x == nil {
 			return nil
 		}
+		log.Errorf("dynamic handler error: %s", x)
 		return x.(error)
 	}
 

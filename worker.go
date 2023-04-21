@@ -214,10 +214,12 @@ func (w *worker) processJob(job *Job) {
 
 	fate := terminateOnly
 	if runErr != nil {
-		log.Warnf("### job failed %s - %s", job.Name, runErr)
+		log.Warnf("### job %s failed on runErr: %s", job.Name, runErr)
 
 		job.failed(runErr)
 		fate = w.jobFate(jt, job)
+	} else {
+		log.Infof("runErr was nil")
 	}
 	w.removeJobFromInProgress(job, fate)
 }
