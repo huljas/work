@@ -34,7 +34,9 @@ func runJob(job *Job, ctxType reflect.Type, middleware []*middlewareHandler, jt 
 			return err
 		}
 		if jt.IsGeneric {
-			return jt.GenericHandler(job)
+			err := jt.GenericHandler(job)
+			log.Infof("### generic handler: %s", err)
+			return err
 		}
 		res := jt.DynamicHandler.Call([]reflect.Value{returnCtx, reflect.ValueOf(job)})
 		x := res[0].Interface()
