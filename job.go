@@ -60,7 +60,7 @@ func (j *Job) setArg(key string, val interface{}) {
 
 func (j *Job) failed(err error) {
 	j.Fails++
-	logrus.Warnf("job failed %s - %s", j.Name, err)
+	logrus.Warnf("### job failed %s - %s", j.Name, err)
 	j.LastErr = err.Error()
 	j.FailedAt = nowEpochSeconds()
 }

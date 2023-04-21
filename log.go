@@ -5,5 +5,5 @@ import (
 )
 
 func logError(key string, err error) {
-	log.Errorf("ERROR: %s - %s\n", key, err.Error())
+	log.Errorf("ERROR: %s - %s", key, err.Error())
 }

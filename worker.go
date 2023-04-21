@@ -214,6 +214,8 @@ func (w *worker) processJob(job *Job) {
 
 	fate := terminateOnly
 	if runErr != nil {
+		log.Warnf("### job failed %s - %s", job.Name, runErr)
+
 		job.failed(runErr)
 		fate = w.jobFate(jt, job)
 	}
@@ -269,6 +271,8 @@ func (w *worker) removeJobFromInProgress(job *Job, fate terminateOp) {
 	conn := w.pool.Get()
 	defer conn.Close()
 
+	log.Warnf("### removeJobFromInProgress %s", job.Name)
+
 	conn.Send("MULTI")
 	conn.Send("LREM", job.inProgQueue, 1, job.rawJSON)
 	conn.Send("DECR", redisKeyJobsLock(w.namespace, job.Name))
@@ -281,8 +285,14 @@ func (w *worker) removeJobFromInProgress(job *Job, fate terminateOp) {
 
 type terminateOp func(conn redis.Conn)
 
-func terminateOnly(_ redis.Conn) { return }
+func terminateOnly(_ redis.Conn) {
+	log.Warnf("### terminateOnly")
+
+	return
+}
 func terminateAndRetry(w *worker, jt *jobType, job *Job) terminateOp {
+	log.Warnf("### terminateAndRetry %s", job.Name)
+
 	rawJSON, err := job.serialize()
 	if err != nil {
 		logError("worker.terminate_and_retry.serialize", err)
