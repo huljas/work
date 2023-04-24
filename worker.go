@@ -214,11 +214,11 @@ func (w *worker) processJob(job *Job) {
 
 	fate := terminateOnly
 	if runErr != nil {
-		log.Warnf("### job %s failed on runErr: %s", job.Name, runErr)
+		log.Warnf("### worker.processJob() - %s failed on runErr: %s", job.Name, runErr)
 		job.failed(runErr)
 		fate = w.jobFate(jt, job)
 	} else {
-		log.Infof("### runErr is nil")
+		log.Warnf("### worker.processJob() - %s ok", job.Name)
 	}
 	w.removeJobFromInProgress(job, fate)
 }
@@ -292,7 +292,7 @@ func terminateOnly(_ redis.Conn) {
 	return
 }
 func terminateAndRetry(w *worker, jt *jobType, job *Job) terminateOp {
-	log.Warnf("### terminateAndRetry %s %d", job.Name, job.Fails)
+	log.Warnf("### terminateAndRetry")
 
 	rawJSON, err := job.serialize()
 	if err != nil {
@@ -300,7 +300,6 @@ func terminateAndRetry(w *worker, jt *jobType, job *Job) terminateOp {
 		return terminateOnly
 	}
 	return func(conn redis.Conn) {
-		log.Warnf("added job to retry pool %s", job.Name)
 		err := conn.Send("ZADD", redisKeyRetry(w.namespace), nowEpochSeconds()+jt.calcBackoff(job), rawJSON)
 		if err != nil {
 			log.Errorf("error adding job to retry pool: %s", err)
@@ -327,12 +326,15 @@ func (w *worker) jobFate(jt *jobType, job *Job) terminateOp {
 	if jt != nil {
 		failsRemaining := int64(jt.MaxFails) - job.Fails
 		if failsRemaining > 0 {
+			log.Infof("### worker.jobFate() - failsRemaining, terminateAndRetry")
 			return terminateAndRetry(w, jt, job)
 		}
 		if jt.SkipDead {
+			log.Infof("### worker.jobFate() - SkipDead, terminateOnly")
 			return terminateOnly
 		}
 	}
+	log.Infof("### worker.jobFate() - terminateAndDead")
 	return terminateAndDead(w, job)
 }
 
