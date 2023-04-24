@@ -324,7 +324,7 @@ func (w *worker) jobFate(jt *jobType, job *Job) terminateOp {
 	if jt != nil {
 		failsRemaining := int64(jt.MaxFails) - job.Fails
 		if failsRemaining > 0 {
-			log.Infof("### worker.jobFate() - failsRemaining, terminateAndRetry")
+			log.Infof("### worker.jobFate() - failsRemaining %d (%d-%d), terminateAndRetry", failsRemaining, jt.MaxFails, job.Fails)
 			return terminateAndRetry(w, jt, job)
 		}
 		if jt.SkipDead {
