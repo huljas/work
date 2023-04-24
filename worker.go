@@ -272,8 +272,6 @@ func (w *worker) removeJobFromInProgress(job *Job, fate terminateOp) {
 	conn := w.pool.Get()
 	defer conn.Close()
 
-	log.Warnf("### removeJobFromInProgress %s", job.Name)
-
 	conn.Send("MULTI")
 	conn.Send("LREM", job.inProgQueue, 1, job.rawJSON)
 	conn.Send("DECR", redisKeyJobsLock(w.namespace, job.Name))
@@ -287,12 +285,12 @@ func (w *worker) removeJobFromInProgress(job *Job, fate terminateOp) {
 type terminateOp func(conn redis.Conn)
 
 func terminateOnly(_ redis.Conn) {
-	log.Warnf("### terminateOnly")
+	log.Warnf("### work.terminateOnly()")
 
 	return
 }
 func terminateAndRetry(w *worker, jt *jobType, job *Job) terminateOp {
-	log.Warnf("### terminateAndRetry")
+	log.Warnf("### work.terminateAndRetry()")
 
 	rawJSON, err := job.serialize()
 	if err != nil {
